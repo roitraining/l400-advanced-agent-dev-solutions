@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .agent import app
+"""App package for multiple Challenge 1 agent modules."""
 
-__all__ = ["app"]
+__all__ = []

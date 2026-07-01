@@ -20,7 +20,7 @@ os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 
 class IncidentState(BaseModel):
-    """Minimal session state shared by all workflow nodes."""
+    """Session state shared by all workflow nodes."""
 
     phase: Literal["awaiting_incident", "awaiting_approval", "completed"] = "awaiting_incident"
     last_user_message: str = ""
@@ -101,21 +101,11 @@ def to_model_text(text: str) -> types.Content:
     return types.Content(role="model", parts=[types.Part(text=text)])
 
 
-def ask_for_incident_details() -> types.Content:
-    return to_model_text(
-        "Please describe the incident before I run triage. Include: what happened, "
-        "impacted systems/users, and urgency."
-    )
-
-
 def route_entry(node_input: str, ctx) -> Event:
-    """Single entry router for normal flow, approval flow, and initial gating."""
-
     message = (node_input or "").strip()
     ctx.state["last_user_message"] = message
 
     phase = ctx.state.get("phase", "awaiting_incident")
-
     if phase == "awaiting_approval":
         return Event(actions=EventActions(route="process_approval"))
 
@@ -131,14 +121,10 @@ def route_entry(node_input: str, ctx) -> Event:
 
 
 def prepare_triage_prompt(ctx) -> str:
-    """Store incident details and build prompt for triage agent."""
-
     user_message = ctx.state.get("last_user_message", "").strip()
 
     if not user_message:
-        return (
-            "No incident details were provided. Ask the user for: what happened, impacted systems, urgency, and timeline."
-        )
+        return "No incident details provided. Ask for what happened, impacted systems/users, and urgency."
 
     if "new incident" in user_message.lower():
         ctx.state["triage_summary"] = ""
@@ -147,10 +133,8 @@ def prepare_triage_prompt(ctx) -> str:
         ctx.state["human_feedback"] = ""
         ctx.state["final_email"] = ""
 
-    # Always use the latest user turn as the candidate incident report.
     ctx.state["incident_report"] = user_message
     ctx.state["phase"] = "awaiting_incident"
-
     return f"Incident report:\n{ctx.state['incident_report']}"
 
 
@@ -190,8 +174,6 @@ def request_human_approval(ctx) -> types.Content:
 
 
 def route_approval_decision(ctx) -> Event:
-    """Branch to approve or revise path from human reply."""
-
     decision = ctx.state.get("last_user_message", "").strip()
     if decision.lower() == "approve":
         return Event(actions=EventActions(route="approve"))
@@ -228,8 +210,8 @@ def prepare_revision_prompt(ctx) -> str:
 
 
 root_agent = Workflow(
-    name="incident_graph_workflow",
-    description="Simple ADK 2 graph workflow with sequential incident processing and human approval branching.",
+    name="incident_graph_workflow_with_human_approval",
+    description="Graph workflow with triage/risk/planning and human approval loop.",
     state_schema=IncidentState,
     edges=[
         (
@@ -269,5 +251,5 @@ root_agent = Workflow(
 
 app = App(
     root_agent=root_agent,
-    name="app",
+    name="incident_agent_with_human_approval",
 )

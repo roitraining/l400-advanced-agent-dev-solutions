@@ -38,13 +38,16 @@ allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )
 
-AGENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+AGENT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "agents",
+)
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    from app.agent import app as adk_app
-    from app.agent import root_agent
+    from agents.incident_agent_with_human_approval.agent import app as adk_app
+    from agents.incident_agent_with_human_approval.agent import root_agent
 
     runner = Runner(
         app=adk_app,
