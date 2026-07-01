@@ -1,0 +1,15 @@
+name: "challenge-4"
+acli_version: "0.6.1"
+agent_directory: "cymbal_support_agent"
+region: "global"
+base_template: "local_challenge-4-evaluation-api"
+generated_at: "2026-07-01T17:35:25.616787+00:00"
+language: "python"
+create_params:
+  deployment_target: "none"
+  session_type: "in_memory"
+  cicd_runner: "skip"
+  include_data_ingestion: false
+  is_a2a: true
+  datastore: "none"
+  agent_guidance_filename: "AGENTS.md"

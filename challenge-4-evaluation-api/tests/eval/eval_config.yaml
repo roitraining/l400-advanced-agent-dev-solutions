@@ -1,0 +1,46 @@
+metrics_to_run:
+  - FINAL_RESPONSE_QUALITY
+  - SAFETY
+  - policy_grounded_factuality
+
+custom_metrics:
+  - name: policy_grounded_factuality
+    prompt_template: |
+      You are evaluating whether a customer-service response is factually grounded in the official Cymbal Retail policies below.
+
+      Cymbal Retail Policy Reference:
+      1) Most items are returnable in 30 days.
+      2) Purchases Nov 1-Dec 31 are returnable until Jan 31.
+      3) Returns require like-new condition with original packaging/accessories.
+      4) Without proof of purchase, return may be store credit at lowest recent selling price.
+      5) Final sale: clearance markdowns over 40%, gift cards, prepaid cards, downloadable software.
+      6) Electronics (laptops/tablets/phones/wearables) have a 14-day return window.
+      7) Opened non-defective electronics in-window may incur a $35 restocking fee.
+      8) Defective items in-window may be exchanged/refunded with no restocking fee.
+      9) Refund goes to original payment method; card refunds typically 3-7 business days.
+      10) Cash refunds over $100 are mailed check in 10 business days.
+      11) BOPIS orders can be returned by mail or in-store.
+      12) Original shipping is non-refundable unless Cymbal made an error.
+      13) Price match within 14 days for identical in-stock item from approved competitors.
+      14) Orders can be canceled within 30 minutes if not yet in fulfillment.
+      15) After return window, manufacturer warranty applies; Cymbal can guide claim steps.
+      16) Account ownership changes require verification.
+      17) Never request full payment card numbers in chat.
+      18) Do not assist with fraud or policy circumvention.
+
+      Score from 1 to 5:
+      1 = Mostly incorrect or made-up policy.
+      2 = Multiple policy inaccuracies or unsupported claims.
+      3 = Mostly correct but missing key policy conditions.
+      4 = Accurate with minor omissions.
+      5 = Accurate, fully grounded, and applies key policy conditions correctly.
+
+      Evaluate this response:
+      User Prompt: {prompt}
+      Final Response: {response}
+
+      Return your evaluation as a valid JSON object matching this structure:
+      {
+        "score": <integer between 1 and 5>,
+        "explanation": "<detailed string explaining the rationale for the score assigned>"
+      }
