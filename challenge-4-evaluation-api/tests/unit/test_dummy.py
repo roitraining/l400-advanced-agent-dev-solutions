@@ -11,13 +11,42 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-You can add your unit tests here.
-This is where you test your business logic, including agent functionality,
-data processing, and other core components of your application.
-"""
+import importlib
+import os
+import sys
 
 
-def test_dummy() -> None:
-    """Placeholder - replace with real tests."""
-    assert 1 == 1
+def _load_agent_module(prompt_style: str | None = None):
+    """Reload the agent module so env-driven prompt selection is deterministic."""
+    module_name = "cymbal_support_agent.agent"
+
+    if prompt_style is None:
+        os.environ.pop("CYMBAL_PROMPT_STYLE", None)
+    else:
+        os.environ["CYMBAL_PROMPT_STYLE"] = prompt_style
+
+    if module_name in sys.modules:
+        return importlib.reload(sys.modules[module_name])
+    return importlib.import_module(module_name)
+
+
+def test_prompt_style_defaults_to_simple() -> None:
+    agent_module = _load_agent_module(None)
+
+    assert agent_module.PROMPT_STYLE == "simple"
+    assert agent_module.ACTIVE_INSTRUCTIONS == agent_module.SIMPLE_INSTRUCTIONS
+
+
+def test_prompt_style_detailed_selected() -> None:
+    agent_module = _load_agent_module("detailed")
+
+    assert agent_module.PROMPT_STYLE == "detailed"
+    assert agent_module.ACTIVE_INSTRUCTIONS == agent_module.DETAILED_INSTRUCTIONS
+
+
+def test_detailed_instructions_contain_negative_rules() -> None:
+    agent_module = _load_agent_module("detailed")
+
+    assert "What not to do:" in agent_module.ACTIVE_INSTRUCTIONS
+    assert "Do not claim to escalate to a human team." in agent_module.ACTIVE_INSTRUCTIONS
+    assert "Do not ask for full payment card numbers" in agent_module.ACTIVE_INSTRUCTIONS

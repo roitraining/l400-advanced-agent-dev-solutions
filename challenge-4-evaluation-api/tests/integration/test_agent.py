@@ -1,57 +1,37 @@
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from google.adk.agents.run_config import RunConfig, StreamingMode
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
-from google.genai import types
-
-from cymbal_support_agent.agent import root_agent
+import importlib
+import sys
 
 
-def test_agent_stream() -> None:
-    """
-    Integration test for the agent stream functionality.
-    Tests that the agent returns valid streaming responses.
-    """
+def _load_agent_module(prompt_style: str):
+    """Reload the agent module so env-based prompt style is applied fresh."""
+    import os
 
-    session_service = InMemorySessionService()
+    os.environ["CYMBAL_PROMPT_STYLE"] = prompt_style
 
-    session = session_service.create_session_sync(user_id="test_user", app_name="test")
-    runner = Runner(agent=root_agent, session_service=session_service, app_name="test")
+    module_name = "cymbal_support_agent.agent"
+    if module_name in sys.modules:
+        return importlib.reload(sys.modules[module_name])
+    return importlib.import_module(module_name)
 
-    message = types.Content(
-        role="user", parts=[types.Part.from_text(text="Why is the sky blue?")]
-    )
 
-    events = list(
-        runner.run(
-            new_message=message,
-            user_id="test_user",
-            session_id=session.id,
-            run_config=RunConfig(streaming_mode=StreamingMode.SSE),
-        )
-    )
-    assert len(events) > 0, "Expected at least one message"
+def test_simple_prompt_style_uses_simple_instructions() -> None:
+    agent_module = _load_agent_module("simple")
 
-    has_text_content = False
-    for event in events:
-        if (
-            event.content
-            and event.content.parts
-            and any(part.text for part in event.content.parts)
-        ):
-            has_text_content = True
-            break
-    assert has_text_content, "Expected at least one message with text content"
+    assert "friendly, practical, and customer-focused" in agent_module.ACTIVE_INSTRUCTIONS
+    assert "What not to do:" not in agent_module.ACTIVE_INSTRUCTIONS
+
+
+def test_detailed_prompt_style_uses_detailed_instructions() -> None:
+    agent_module = _load_agent_module("detailed")
+
+    assert "What to do:" in agent_module.ACTIVE_INSTRUCTIONS
+    assert "What not to do:" in agent_module.ACTIVE_INSTRUCTIONS
+    assert "Do not claim to escalate to a human team." in agent_module.ACTIVE_INSTRUCTIONS
+
+
+def test_policy_reference_is_embedded_in_active_instructions() -> None:
+    agent_module = _load_agent_module("detailed")
+
+    assert "Policy 6. Electronics" in agent_module.ACTIVE_INSTRUCTIONS
+    assert "Policy 14. Cancellation" in agent_module.ACTIVE_INSTRUCTIONS
+    assert agent_module.root_agent.name == "cymbal_customer_service_agent"

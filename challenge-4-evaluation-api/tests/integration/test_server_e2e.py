@@ -236,3 +236,23 @@ def test_collect_feedback(server_fixture: subprocess.Popen[str]) -> None:
         FEEDBACK_URL, json=feedback_data, headers=HEADERS, timeout=10
     )
     assert response.status_code == 200
+
+
+def test_feedback_rejects_invalid_payload(server_fixture: subprocess.Popen[str]) -> None:
+    """Test feedback validation for a malformed payload."""
+    invalid_feedback_data = {
+        "score": "bad-score-type",
+        "text": "This should fail validation",
+    }
+    response = requests.post(
+        FEEDBACK_URL, json=invalid_feedback_data, headers=HEADERS, timeout=10
+    )
+    assert response.status_code == 422
+
+
+def test_openapi_available(server_fixture: subprocess.Popen[str]) -> None:
+    """Ensure the app publishes OpenAPI schema for teaching/demo use."""
+    response = requests.get(f"{BASE_URL}/openapi.json", timeout=10)
+    assert response.status_code == 200
+    payload = response.json()
+    assert "paths" in payload

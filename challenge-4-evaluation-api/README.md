@@ -47,6 +47,27 @@ source .venv/bin/activate
 agents-cli install
 ```
 
+## Running Tests
+Run tests from `challenge-4-evaluation-api` with the virtual environment activated.
+
+### Run All Tests
+```bash
+source .venv/bin/activate
+pytest tests/
+```
+
+### Run Unit Tests Only
+```bash
+source .venv/bin/activate
+pytest tests/unit
+```
+
+### Run Integration Tests Only
+```bash
+source .venv/bin/activate
+pytest tests/integration
+```
+
 ## Optional Playground Smoke Test
 ```bash
 agents-cli playground
