@@ -8,6 +8,7 @@ Goal: get a working ADK project running quickly so challenge time is spent on ag
 
 - adk-quickstart.md: Create a minimal ADK project directly with the ADK SDK.
 - agents-cli-quickstart.md: Create a deployment-ready ADK project using agents-cli scaffolding.
+- google-agents-cli-quickstart.md: Same scaffold/playground/deploy flow using `uvx google-agents-cli ...` commands.
 
 ## Suggested Path
 
