@@ -2,6 +2,8 @@
 
 Use this when you want a minimal project with very little scaffolding.
 
+Note: for the full official guide and additional options, see https://adk.dev/get-started/python/
+
 ## 1) Prerequisites
 
 1. Install Python 3.11-3.13.

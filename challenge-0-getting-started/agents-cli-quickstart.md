@@ -49,6 +49,13 @@ agents-cli playground
 
 Open the local URL printed in terminal.
 
+In the playground:
+
+1. Start a new chat session.
+2. Send a basic prompt first.
+3. Update `app/agent.py` instructions.
+4. Refresh or start a new chat and test again.
+
 ## 5) Ask A First Prompt
 
 Try:
@@ -72,12 +79,28 @@ Save and re-test in playground.
 agents-cli run "Explain Retrieval Augmented Generation in plain language"
 ```
 
-## 8) Optional Next Step: Add Deployment Support Later
+## 8) Deploy To Agent Platform (Agent Runtime)
 
-When students are ready for deployment topics:
+If you scaffolded with `--prototype`, add deployment support first:
 
 ```bash
 agents-cli scaffold enhance . --deployment-target agent_runtime
+```
+
+Then deploy:
+
+```bash
+gcloud config set project YOUR_PROJECT_ID
+agents-cli deploy --project YOUR_PROJECT_ID --region us-central1 --no-confirm-project
+```
+
+On success, you will get deployment details and a generated `deployment_metadata.json` file.
+
+## 9) Optional: Register To Gemini Enterprise
+
+```bash
+agents-cli publish gemini-enterprise \
+  --gemini-enterprise-app-id "projects/<PROJECT_NUMBER>/locations/global/collections/default_collection/engines/<APP_ID>"
 ```
 
 ## Common Fixes
