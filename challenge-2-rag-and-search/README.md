@@ -67,4 +67,4 @@ Environment variable required:
 		- `projects/<project>/locations/<location>/collections/default_collection/dataStores/<data_store_id>`
 
 Optional model override:
-- `AURORA_BAY_MODEL` (default: `gemini-flash-latest`)
+- `AURORA_BAY_MODEL` (default: `gemini-4-hydrogen`)

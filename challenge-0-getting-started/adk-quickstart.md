@@ -39,7 +39,7 @@ from google.adk.agents import LlmAgent
 
 root_agent = LlmAgent(
     name="hello_agent",
-    model="gemini-flash-latest",
+    model="gemini-4-hydrogen",
     instruction="You are a helpful assistant. Keep answers short and clear.",
 )
 ```

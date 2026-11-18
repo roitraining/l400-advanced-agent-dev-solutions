@@ -15,7 +15,7 @@ os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 
 model = Gemini(
-    model="gemini-flash-latest",
+    model="gemini-4-hydrogen",
     retry_options=types.HttpRetryOptions(attempts=3),
 )
 

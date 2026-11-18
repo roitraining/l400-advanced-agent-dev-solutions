@@ -10,6 +10,7 @@ from google.adk.models import Gemini
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.mcp_tool import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
+from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
 from google.genai import types
 from mcp import StdioServerParameters
 
@@ -21,7 +22,7 @@ os.environ.setdefault("GOOGLE_CLOUD_PROJECT", project_id)
 os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "global")
 os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
-MODEL = os.getenv("CHALLENGE3_MODEL", "gemini-flash-latest")
+MODEL = os.getenv("CHALLENGE3_MODEL", "gemini-4-hydrogen")
 
 # Custom NWS MCP server (local Python process).
 NWS_MCP_COMMAND = os.getenv("NWS_MCP_COMMAND", "python3")
@@ -29,15 +30,8 @@ NWS_MCP_ARGS = shlex.split(
     os.getenv("NWS_MCP_ARGS", "nws_weather_mcp/server.py")
 )
 
-# Google Maps MCP server (typically npx-based).
-MAPS_MCP_COMMAND = os.getenv("MAPS_MCP_COMMAND", "npx")
-MAPS_MCP_ARGS = shlex.split(
-    os.getenv("MAPS_MCP_ARGS", "-y @googlemaps/mcp-server")
-)
-
-maps_mcp_env = dict(os.environ)
-if os.getenv("GOOGLE_MAPS_API_KEY"):
-    maps_mcp_env["GOOGLE_MAPS_API_KEY"] = os.getenv("GOOGLE_MAPS_API_KEY", "")
+MAPS_MCP_URL = "https://mapstools.googleapis.com/mcp"
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
 nws_specialist = Agent(
     name="nws_weather_specialist",
@@ -64,16 +58,19 @@ maps_specialist = Agent(
     model=Gemini(model=MODEL, retry_options=types.HttpRetryOptions(attempts=3)),
     instruction="""
 You are a maps specialist.
-Use Google Maps MCP tools for geocoding, place lookup, and routing tasks.
+Use search_places and resolve_names to look up places and return coordinates.
+Use compute_routes for distance and route questions.
+Leave weather forecasts to the NWS specialist. Do not call lookup_weather.
 """,
     tools=[
         McpToolset(
-            connection_params=StdioConnectionParams(
-                server_params=StdioServerParameters(
-                    command=MAPS_MCP_COMMAND,
-                    args=MAPS_MCP_ARGS,
-                    env=maps_mcp_env,
-                )
+            connection_params=StreamableHTTPConnectionParams(
+                url=MAPS_MCP_URL,
+                headers={
+                    "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
         )
     ],

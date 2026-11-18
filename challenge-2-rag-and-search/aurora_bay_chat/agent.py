@@ -11,7 +11,7 @@ os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
-MODEL = os.getenv("AURORA_BAY_MODEL", "gemini-flash-latest")
+MODEL = os.getenv("AURORA_BAY_MODEL", "gemini-4-hydrogen")
 DISCOVERY_ENGINE_DATASTORE_FULL_NAME = os.getenv(
     "DISCOVERY_ENGINE_DATASTORE_FULL_NAME",
     f"projects/{os.environ['GOOGLE_CLOUD_PROJECT']}/locations/global/collections/default_collection/dataStores/aurora-bay-faqs-ad63b7",

@@ -3,5 +3,16 @@
   "deployment_target": "agent_runtime",
   "is_a2a": true,
   "agent_directory": "app",
-  "deployment_timestamp": "2026-07-02T12:09:20.503054+00:00"
+  "deployment_timestamp": "2026-07-02T12:09:20.503054+00:00",
+  "pending_operation": {
+    "owner_id": "a8f4715ba3d3417f83abaa8c09e314e8",
+    "state": "running",
+    "operation_name": "projects/692811562217/locations/us-east4/reasoningEngines/9006996944601481216/operations/2141932797906911232",
+    "project": "l400-adv-agent-dev-solutions",
+    "location": "us-east4",
+    "deployment_target": "agent_runtime",
+    "started_at": "2026-11-18T14:47:17.237792+00:00",
+    "owner_pid": 5032,
+    "owner_host": "mac.lan"
+  }
 }

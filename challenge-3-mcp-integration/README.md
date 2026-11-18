@@ -20,7 +20,7 @@ Implemented with:
 ## Architecture
 - Root agent: `weather_maps_root_agent`
 - Specialist agent tool 1: `google_maps_specialist`
-  - Uses Google Maps MCP server tools
+  - Uses the hosted Maps Experience MCP server (`https://mapstools.googleapis.com/mcp`)
 - Specialist agent tool 2: `nws_weather_specialist`
   - Uses custom local MCP server (`nws_weather_mcp/server.py`)
 
@@ -38,21 +38,18 @@ Flow:
 - `agents-cli` installed (`agents-cli --version`)
 - Python 3.11+
 - ADC configured for Google Cloud
-- Node.js + npm available for Maps MCP server (if using npx launcher)
-- Google Maps API key (for Maps MCP server)
-- Google Maps APIs enabled in your GCP project (at minimum Geocoding, Places, and Routes)
+- Google Maps API key sent as the `X-Goog-Api-Key` header
+- Maps Experience agent tools API enabled on the project and on that key
 - Billing enabled on the GCP project used by your Maps API key
 
 ## Environment Variables
-- `GOOGLE_MAPS_API_KEY` (required for Maps MCP server)
+- `GOOGLE_MAPS_API_KEY` (required; sent as `X-Goog-Api-Key` to `https://mapstools.googleapis.com/mcp`)
 - `NWS_USER_AGENT` (recommended; identify your app/email for NWS)
 
 Optional overrides:
-- `CHALLENGE3_MODEL` (default: `gemini-flash-latest`)
+- `CHALLENGE3_MODEL` (default: `gemini-4-hydrogen`)
 - `NWS_MCP_COMMAND` (default: `python3`)
 - `NWS_MCP_ARGS` (default: `nws_weather_mcp/server.py`)
-- `MAPS_MCP_COMMAND` (default: `npx`)
-- `MAPS_MCP_ARGS` (default: `-y @googlemaps/mcp-server`)
 
 Use a local `.env` file so secrets are not committed:
 ```bash

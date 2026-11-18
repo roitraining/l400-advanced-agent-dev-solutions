@@ -10,7 +10,7 @@ os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
-MODEL = os.getenv("CHALLENGE5_MODEL", "gemini-flash-latest")
+MODEL = os.getenv("CHALLENGE5_MODEL", "gemini-4-hydrogen")
 
 root_agent = LlmAgent(
     name="caveman_agent",

@@ -195,10 +195,12 @@ agents-cli eval compare \
 - Check Console project and region filters. This challenge uses `global`.
 
 ## Metrics
-Configured in `tests/eval/eval_config.yaml`:
-- `FINAL_RESPONSE_QUALITY` (built-in)
-- `SAFETY` (built-in)
-- `policy_grounded_factuality` (custom judge metric)
+Configured in `tests/eval/eval_config.yaml`. All three judges use `gemini-4-hydrogen`. The eval service requires the full model resource name, so the config uses `projects/l400-adv-agent-dev-solutions/locations/global/publishers/google/models/gemini-4-hydrogen`:
+- `FINAL_RESPONSE_QUALITY`
+- `SAFETY`
+- `policy_grounded_factuality`
+
+The managed Vertex metrics with those first two names still call retired Gemini 2.5 autoraters, and that service ignores a custom judge model. The config therefore supplies its own judge prompts under the same names.
 
 The grading focus for this challenge is factual, policy-grounded responses.
 
