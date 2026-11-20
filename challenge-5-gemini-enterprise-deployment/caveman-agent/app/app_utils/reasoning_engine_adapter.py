@@ -25,10 +25,16 @@ packaged Agent Engine.
 import inspect
 import json
 
+from agentplatform.agent_engines.templates.adk import AdkApp
 from fastapi import FastAPI, HTTPException, Request, encoders, responses
-from vertexai.agent_engines.templates.adk import AdkApp
+from starlette.concurrency import iterate_in_threadpool, run_in_threadpool
 
 from app.app_utils import services
+
+
+def _no_op_instrumentor_builder(project_id: str) -> None:
+    """No-op so set_up() keeps the startup instrumentor and generate_content spans."""
+    return None
 
 
 def attach_reasoning_engine_routes(app: FastAPI) -> None:
@@ -48,6 +54,7 @@ def attach_reasoning_engine_routes(app: FastAPI) -> None:
                 app=adk_app,
                 session_service_builder=services.get_session_service,
                 artifact_service_builder=services.get_artifact_service,
+                instrumentor_builder=_no_op_instrumentor_builder,
             )
             runtime.set_up()
             operations = runtime.register_operations()
@@ -73,10 +80,20 @@ def attach_reasoning_engine_routes(app: FastAPI) -> None:
     async def stream_query(request: Request) -> responses.StreamingResponse:
         body = await request.json()
         method = resolve_method(body["class_method"], streaming=True)
+        kwargs = body.get("input") or {}
+        stream = (
+            await method(**kwargs)
+            if inspect.iscoroutinefunction(method)
+            else method(**kwargs)
+        )
 
         async def generator():
-            async for event in method(**(body.get("input") or {})):
-                yield json.dumps(event) + "\n"
+            if hasattr(stream, "__aiter__"):
+                async for event in stream:
+                    yield json.dumps(encoders.jsonable_encoder(event)) + "\n"
+            else:
+                async for event in iterate_in_threadpool(stream):
+                    yield json.dumps(encoders.jsonable_encoder(event)) + "\n"
 
         return responses.StreamingResponse(
             content=generator(), media_type="application/json"
@@ -87,11 +104,10 @@ def attach_reasoning_engine_routes(app: FastAPI) -> None:
         body = await request.json()
         method = resolve_method(body["class_method"], streaming=False)
         kwargs = body.get("input") or {}
-        output = (
-            await method(**kwargs)
-            if inspect.iscoroutinefunction(method)
-            else method(**kwargs)
-        )
+        if inspect.iscoroutinefunction(method):
+            output = await method(**kwargs)
+        else:
+            output = await run_in_threadpool(method, **kwargs)
         return responses.JSONResponse(
             content=encoders.jsonable_encoder({"output": output})
         )

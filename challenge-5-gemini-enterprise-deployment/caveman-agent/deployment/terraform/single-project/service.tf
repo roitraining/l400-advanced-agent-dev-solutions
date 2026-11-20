@@ -23,8 +23,9 @@ resource "google_vertex_ai_reasoning_engine" "app" {
   project      = var.project_id
 
   spec {
-    agent_framework = "google-adk"
+    agent_framework = var.agent_framework
     service_account = google_service_account.app_sa.email
+    identity_type   = "SERVICE_ACCOUNT"
 
     deployment_spec {
       min_instances         = 1
@@ -41,9 +42,54 @@ resource "google_vertex_ai_reasoning_engine" "app" {
         value = google_storage_bucket.logs_data_bucket.name
       }
 
+      # GOOGLE_CLOUD_PROJECT is reserved by Agent Runtime (the platform injects
+      # it) and rejected in deployment_spec.env; GOOGLE_CLOUD_LOCATION is allowed.
+      env {
+        name  = "GOOGLE_CLOUD_LOCATION"
+        value = "global"
+      }
+
+      env {
+        name  = "GOOGLE_GENAI_USE_VERTEXAI"
+        value = "True"
+      }
+
+      env {
+        name  = "OTEL_SERVICE_NAME"
+        value = "caveman-agent"
+      }
+
+      # Prompt/response content capture, off by default. Go: set "true" to log
+      # content to OTLP log events for the completions view. Python: content goes to
+      # GCS via the completion hook, so NO_CONTENT.
       env {
         name  = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
-        value = "true"
+        value = "NO_CONTENT"
+      }
+
+      env {
+        name  = "ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS"
+        value = "false"
+      }
+
+      env {
+        name  = "OTEL_SEMCONV_STABILITY_OPT_IN"
+        value = "gen_ai_latest_experimental"
+      }
+
+      env {
+        name  = "OTEL_INSTRUMENTATION_GENAI_UPLOAD_FORMAT"
+        value = "jsonl"
+      }
+
+      env {
+        name  = "OTEL_INSTRUMENTATION_GENAI_COMPLETION_HOOK"
+        value = "upload"
+      }
+
+      env {
+        name  = "OTEL_INSTRUMENTATION_GENAI_UPLOAD_BASE_PATH"
+        value = "gs://${google_storage_bucket.logs_data_bucket.name}/completions"
       }
 
       env {

@@ -5,10 +5,15 @@ from google.adk.agents import LlmAgent
 from google.adk.apps import App
 from google.adk.tools import google_search
 
-_, project_id = google.auth.default()
-os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
-os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
-os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+if not os.environ.get("GOOGLE_CLOUD_PROJECT"):
+    try:
+        _, project_id = google.auth.default()
+        if project_id:
+            os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
+    except Exception:
+        pass
+os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "global")
+os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
 MODEL = os.getenv("CHALLENGE5_MODEL", "gemini-4-hydrogen")
 
